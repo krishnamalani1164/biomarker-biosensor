@@ -3,7 +3,7 @@
 
 ## Project Overview
 
-This project is a comprehensive biosensing system for detecting cardiovascular disease (CVD) biomarkers, developed in collaboration with **Abijeet Awasthi**. The system consists of a web-based interface running on an ESP32 microcontroller that allows users to:
+This project is a comprehensive biosensing system for detecting cardiovascular disease (CVD) biomarkers, developed in collaboration with **ABHIJEET AWASTHI**. The system consists of a web-based interface running on an ESP32 microcontroller that allows users to:
 
 * Create and manage biomarker test configurations
 * Run diagnostic tests with real-time data visualization
