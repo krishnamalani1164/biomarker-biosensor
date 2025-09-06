@@ -1,0 +1,26 @@
+Test ID,CVD-2025-001
+Timestamp,9/6/2025, 5:30:20 PM
+Test Type,EP (Endpoint)
+Temperature,37°C
+Sample Volume,50 μL
+
+Biomarker,Value,Unit,Status,Normal Range
+Troponin I (cTnI),2.4,ng/mL,Elevated,<0.04
+CK-MB,15.2,ng/mL,High Risk,<6.3
+Myoglobin,45.8,ng/mL,Normal,25-72
+NT-proBNP,285,pg/mL,Elevated,<125
+D-Dimer,0.35,μg/mL,Normal,<0.50
+LDH,195,U/L,Elevated,140-280
+
+Wavelength Analysis
+360nm,0.234,AU
+420nm,0.451,AU
+460nm,0.687,AU
+540nm,0.523,AU
+
+Configuration
+R1 Value,0.95
+R2 Value,1.02
+Low Threshold,0.1 ng/mL
+High Threshold,2.0 ng/mL
+Correlation Coefficient,0.9987
