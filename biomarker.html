@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CVD Biomarker Biosensor - Simulation Results</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .dashboard {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(45deg, #2c5aa0, #1e3a8a);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+        
+        .status-bar {
+            background: #f8fafc;
+            padding: 15px 30px;
+            border-bottom: 2px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 5px 0;
+        }
+        
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        
+        .online { background: #22c55e; }
+        .warning { background: #f59e0b; }
+        .error { background: #ef4444; }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .main-content {
+            padding: 30px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+            border: 1px solid #e2e8f0;
+        }
+        
+        .card-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #f1f5f9;
+            padding-bottom: 15px;
+        }
+        
+        .card-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #1e293b;
+        }
+        
+        .biomarker-results {
+            grid-column: 1 / -1;
+        }
+        
+        .biomarker-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .biomarker-card {
+            background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+            padding: 20px;
+            border-radius: 12px;
+            border-left: 4px solid;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .biomarker-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 50px;
+            height: 50px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 0 0 0 50px;
+        }
+        
+        .normal { border-left-color: #22c55e; }
+        .elevated { border-left-color: #f59e0b; }
+        .high { border-left-color: #ef4444; }
+        
+        .biomarker-name {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #1e293b;
+        }
+        
+        .biomarker-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        
+        .biomarker-unit {
+            font-size: 0.9rem;
+            color: #64748b;
+            margin-bottom: 8px;
+        }
+        
+        .biomarker-status {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .status-normal {
+            background: #dcfce7;
+            color: #166534;
+        }
+        
+        .status-elevated {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        
+        .status-high {
+            background: #fecaca;
+            color: #991b1b;
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-top: 20px;
+        }
+        
+        .wavelength-data {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .wavelength-item {
+            text-align: center;
+            padding: 15px;
+            background: #f8fafc;
+            border-radius: 8px;
+            border: 2px solid #e2e8f0;
+        }
+        
+        .wavelength-value {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #1e293b;
+        }
+        
+        .wavelength-label {
+            font-size: 0.9rem;
+            color: #64748b;
+            margin-top: 5px;
+        }
+        
+        .test-info {
+            background: #f8fafc;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+        
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding: 5px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .info-label {
+            font-weight: 600;
+            color: #374151;
+        }
+        
+        .info-value {
+            color: #6b7280;
+        }
+        
+        .export-btn {
+            background: linear-gradient(45deg, #3b82f6, #1d4ed8);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+        
+        .export-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(59, 130, 246, 0.3);
+        }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+                gap: 20px;
+                padding: 20px;
+            }
+            
+            .status-bar {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .wavelength-data {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <div class="header">
+            <h1>🫀 CVD Biomarker Biosensor</h1>
+            <p>Real-time Cardiovascular Disease Detection System - ESP32 & MicroPython</p>
+        </div>
+        
+        <div class="status-bar">
+            <div class="status-item">
+                <div class="status-dot online"></div>
+                <span>ESP32 Connected</span>
+            </div>
+            <div class="status-item">
+                <div class="status-dot online"></div>
+                <span>Sensors Active</span>
+            </div>
+            <div class="status-item">
+                <div class="status-dot warning"></div>
+                <span>Calibration: 98.5%</span>
+            </div>
+            <div class="status-item">
+                <strong>Test ID: CVD-2025-001</strong>
+            </div>
+            <div class="status-item">
+                <strong>Timestamp: 2025-09-06 14:23:15</strong>
+            </div>
+        </div>
+        
+        <div class="main-content">
+            <div class="card biomarker-results">
+                <div class="card-header">
+                    <h2 class="card-title">🧬 Biomarker Analysis Results</h2>
+                </div>
+                
+                <div class="biomarker-grid">
+                    <div class="biomarker-card elevated">
+                        <div class="biomarker-name">Troponin I (cTnI)</div>
+                        <div class="biomarker-value" style="color: #f59e0b;">2.4</div>
+                        <div class="biomarker-unit">ng/mL</div>
+                        <span class="biomarker-status status-elevated">Elevated</span>
+                    </div>
+                    
+                    <div class="biomarker-card high">
+                        <div class="biomarker-name">CK-MB</div>
+                        <div class="biomarker-value" style="color: #ef4444;">15.2</div>
+                        <div class="biomarker-unit">ng/mL</div>
+                        <span class="biomarker-status status-high">High Risk</span>
+                    </div>
+                    
+                    <div class="biomarker-card normal">
+                        <div class="biomarker-name">Myoglobin</div>
+                        <div class="biomarker-value" style="color: #22c55e;">45.8</div>
+                        <div class="biomarker-unit">ng/mL</div>
+                        <span class="biomarker-status status-normal">Normal</span>
+                    </div>
+                    
+                    <div class="biomarker-card elevated">
+                        <div class="biomarker-name">NT-proBNP</div>
+                        <div class="biomarker-value" style="color: #f59e0b;">285</div>
+                        <div class="biomarker-unit">pg/mL</div>
+                        <span class="biomarker-status status-elevated">Elevated</span>
+                    </div>
+                    
+                    <div class="biomarker-card normal">
+                        <div class="biomarker-name">D-Dimer</div>
+                        <div class="biomarker-value" style="color: #22c55e;">0.35</div>
+                        <div class="biomarker-unit">μg/mL</div>
+                        <span class="biomarker-status status-normal">Normal</span>
+                    </div>
+                    
+                    <div class="biomarker-card elevated">
+                        <div class="biomarker-name">LDH</div>
+                        <div class="biomarker-value" style="color: #f59e0b;">195</div>
+                        <div class="biomarker-unit">U/L</div>
+                        <span class="biomarker-status status-elevated">Elevated</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">📊 Real-time Absorbance Data</h3>
+                </div>
+                <div class="chart-container">
+                    <canvas id="absorbanceChart"></canvas>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">🌈 Wavelength Analysis</h3>
+                </div>
+                <div class="wavelength-data">
+                    <div class="wavelength-item">
+                        <div class="wavelength-value">0.234</div>
+                        <div class="wavelength-label">360nm</div>
+                    </div>
+                    <div class="wavelength-item">
+                        <div class="wavelength-value">0.451</div>
+                        <div class="wavelength-label">420nm</div>
+                    </div>
+                    <div class="wavelength-item">
+                        <div class="wavelength-value">0.687</div>
+                        <div class="wavelength-label">460nm</div>
+                    </div>
+                    <div class="wavelength-item">
+                        <div class="wavelength-value">0.523</div>
+                        <div class="wavelength-label">540nm</div>
+                    </div>
+                </div>
+                
+                <div class="chart-container">
+                    <canvas id="wavelengthChart"></canvas>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">⚙️ Test Configuration</h3>
+                </div>
+                <div class="test-info">
+                    <div class="info-row">
+                        <span class="info-label">Test Type:</span>
+                        <span class="info-value">EP (Endpoint)</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Temperature:</span>
+                        <span class="info-value">37°C</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Sample Volume:</span>
+                        <span class="info-value">50 μL</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Readings Count:</span>
+                        <span class="info-value">25</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">R1 Value:</span>
+                        <span class="info-value">0.95</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">R2 Value:</span>
+                        <span class="info-value">1.02</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Low Threshold:</span>
+                        <span class="info-value">0.1 ng/mL</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">High Threshold:</span>
+                        <span class="info-value">2.0 ng/mL</span>
+                    </div>
+                </div>
+                
+                <button class="export-btn" onclick="exportResults()">📄 Export Results to CSV</button>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">🔬 Beer-Lambert Calculations</h3>
+                </div>
+                <div class="chart-container">
+                    <canvas id="concentrationChart"></canvas>
+                </div>
+                <div class="test-info">
+                    <div class="info-row">
+                        <span class="info-label">Beer-Lambert Law:</span>
+                        <span class="info-value">A = ε × l × c</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Path Length (l):</span>
+                        <span class="info-value">1.0 cm</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Molar Extinction Coefficient (ε):</span>
+                        <span class="info-value">4.2 × 10⁴ M⁻¹cm⁻¹</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Correlation Coefficient (R²):</span>
+                        <span class="info-value">0.9987</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Generate realistic biosensor data
+        function generateTimeSeriesData(points = 25, baseValue = 0.5, variation = 0.1) {
+            const data = [];
+            const labels = [];
+            let currentValue = baseValue;
+            
+            for (let i = 0; i < points; i++) {
+                const time = new Date(Date.now() - (points - i) * 30000); // 30 seconds apart
+                labels.push(time.toLocaleTimeString());
+                
+                // Add some realistic drift and noise
+                currentValue += (Math.random() - 0.5) * variation * 0.2;
+                currentValue = Math.max(0, Math.min(2, currentValue + Math.sin(i * 0.3) * variation));
+                
+                data.push(currentValue);
+            }
+            
+            return { data, labels };
+        }
+        
+        // Absorbance Chart
+        const absorbanceData = generateTimeSeriesData(25, 0.45, 0.15);
+        const absorbanceCtx = document.getElementById('absorbanceChart').getContext('2d');
+        new Chart(absorbanceCtx, {
+            type: 'line',
+            data: {
+                labels: absorbanceData.labels,
+                datasets: [{
+                    label: 'Absorbance (AU)',
+                    data: absorbanceData.data,
+                    borderColor: '#3b82f6',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    tension: 0.4,
+                    fill: true,
+                    pointRadius: 3,
+                    pointHoverRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: true },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return `Absorbance: ${context.parsed.y.toFixed(3)} AU`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 1.0,
+                        title: { display: true, text: 'Absorbance (AU)' }
+                    },
+                    x: {
+                        title: { display: true, text: 'Time' }
+                    }
+                }
+            }
+        });
+        
+        // Wavelength Chart
+        const wavelengthCtx = document.getElementById('wavelengthChart').getContext('2d');
+        new Chart(wavelengthCtx, {
+            type: 'bar',
+            data: {
+                labels: ['360nm', '420nm', '460nm', '540nm'],
+                datasets: [{
+                    label: 'Absorbance',
+                    data: [0.234, 0.451, 0.687, 0.523],
+                    backgroundColor: [
+                        'rgba(147, 51, 234, 0.7)',
+                        'rgba(59, 130, 246, 0.7)',
+                        'rgba(16, 185, 129, 0.7)',
+                        'rgba(245, 158, 11, 0.7)'
+                    ],
+                    borderColor: [
+                        'rgba(147, 51, 234, 1)',
+                        'rgba(59, 130, 246, 1)',
+                        'rgba(16, 185, 129, 1)',
+                        'rgba(245, 158, 11, 1)'
+                    ],
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 1.0,
+                        title: { display: true, text: 'Absorbance (AU)' }
+                    },
+                    x: {
+                        title: { display: true, text: 'Wavelength' }
+                    }
+                }
+            }
+        });
+        
+        // Concentration Chart
+        const concentrationCtx = document.getElementById('concentrationChart').getContext('2d');
+        const concentrationData = [
+            { x: 0.1, y: 0.05 },
+            { x: 0.5, y: 0.23 },
+            { x: 1.0, y: 0.45 },
+            { x: 1.5, y: 0.68 },
+            { x: 2.0, y: 0.89 },
+            { x: 2.4, y: 1.07 } // Current sample
+        ];
+        
+        new Chart(concentrationCtx, {
+            type: 'scatter',
+            data: {
+                datasets: [{
+                    label: 'Calibration Standards',
+                    data: concentrationData.slice(0, -1),
+                    backgroundColor: 'rgba(34, 197, 94, 0.7)',
+                    borderColor: 'rgba(34, 197, 94, 1)',
+                    pointRadius: 6
+                }, {
+                    label: 'Sample Result',
+                    data: [concentrationData[concentrationData.length - 1]],
+                    backgroundColor: 'rgba(239, 68, 68, 0.7)',
+                    borderColor: 'rgba(239, 68, 68, 1)',
+                    pointRadius: 8
+                }, {
+                    label: 'Best Fit Line',
+                    data: concentrationData,
+                    type: 'line',
+                    borderColor: 'rgba(99, 102, 241, 0.8)',
+                    backgroundColor: 'transparent',
+                    borderWidth: 2,
+                    tension: 0,
+                    pointRadius: 0,
+                    showLine: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        title: { display: true, text: 'Concentration (ng/mL)' },
+                        min: 0,
+                        max: 3
+                    },
+                    y: {
+                        title: { display: true, text: 'Absorbance (AU)' },
+                        min: 0,
+                        max: 1.2
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return `${context.dataset.label}: ${context.parsed.x.toFixed(2)} ng/mL, ${context.parsed.y.toFixed(3)} AU`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Export function
+        function exportResults() {
+            const timestamp = new Date().toISOString().replace(/:/g, '-');
+            const csvContent = `Test ID,CVD-2025-001
+Timestamp,${new Date().toLocaleString()}
+Test Type,EP (Endpoint)
+Temperature,37°C
+Sample Volume,50 μL
+
+Biomarker,Value,Unit,Status,Normal Range
+Troponin I (cTnI),2.4,ng/mL,Elevated,<0.04
+CK-MB,15.2,ng/mL,High Risk,<6.3
+Myoglobin,45.8,ng/mL,Normal,25-72
+NT-proBNP,285,pg/mL,Elevated,<125
+D-Dimer,0.35,μg/mL,Normal,<0.50
+LDH,195,U/L,Elevated,140-280
+
+Wavelength Analysis
+360nm,0.234,AU
+420nm,0.451,AU
+460nm,0.687,AU
+540nm,0.523,AU
+
+Configuration
+R1 Value,0.95
+R2 Value,1.02
+Low Threshold,0.1 ng/mL
+High Threshold,2.0 ng/mL
+Correlation Coefficient,0.9987`;
+
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `CVD_Biomarker_Results_${timestamp}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        }
+        
+        // Simulate real-time updates
+        setInterval(() => {
+            const statusDots = document.querySelectorAll('.status-dot');
+            statusDots.forEach(dot => {
+                dot.style.opacity = Math.random() > 0.3 ? '1' : '0.5';
+            });
+        }, 2000);
+    </script>
+</body>
+</html>
