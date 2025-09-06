@@ -1,6 +1,10 @@
 # biomarker-biosensor
 # Biomarker Biosensor Project
 
+<img width="1919" height="959" alt="Screenshot 2025-09-06 172627" src="https://github.com/user-attachments/assets/b02c3ec7-7e5b-40a6-836c-5d87a6a90f45" />
+<img width="1650" height="699" alt="Screenshot 2025-09-06 172711" src="https://github.com/user-attachments/assets/e4a82d56-6727-4380-9c63-5e016f2e756c" />
+<img width="1641" height="825" alt="Screenshot 2025-09-06 172728" src="https://github.com/user-attachments/assets/3a02da24-4d3a-404e-9689-9e5e06dc3742" />
+
 ## Project Overview
 
 This project is a comprehensive biosensing system for detecting cardiovascular disease (CVD) biomarkers, developed in collaboration with **ABHIJEET AWASTHI**. The system consists of a web-based interface running on an ESP32 microcontroller that allows users to:
